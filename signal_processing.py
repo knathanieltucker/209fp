@@ -6,12 +6,6 @@ title: signal processing
 
 
 
-
-
-
-
-
-
 #below we have varius filters used in signal processing
 
 """
@@ -82,8 +76,8 @@ def rsi(input,period):
 	# step 1: find the day by day change in the measured quntities 
 	# and put them into a list of ups and downs 
 	if len(input)<period: raise NameError("rsi: list was smaller than the period")
-	up = []
-	down = []
+	up = [0]
+	down = [0]
 	for i in range(1,len(input)):
 		if input[i]>input[i-1]:
 			#current - previous
@@ -95,16 +89,8 @@ def rsi(input,period):
 			up.append(0)
 
 
-	#step 2:
-	# find the Relative Strength, RS, of the ups and downs and then divide 
-	def rs(diff):
-		out = [sum(diff[0:period])/period]
-		for i in range(period,len(diff)):
-			out.append((diff[i] + (period-1)*out[i-period]) /float(period))
-		return out
-
-	rs_up = rs(up)
-	rs_down = rs(down)
+	rs_up = sma(up,period)
+	rs_down = sma(down,period)
 
 	#a deviding function to aviod devide by 0 
 	def dev(a,b):
@@ -206,13 +192,13 @@ and then cash out then with either a gain or a loss
 takes float list, float list, int, int 
 returns float list 
 """
-def equity_curve(indicator, verification, bound_up, bound_low, holding_period):
+def equity_curve(indicator, verification, bound_up, bound_low, holding_period,end_value=False):
 	#check for valid inputs 
 	l = len(indicator)
 	if l!=len(verification) or l != len(bound_up) or l != len(bound_low): 
 		raise NameError("getreturn: indicator & verification length not equal")
 
-	money = 100000.0
+	money = 100.0
 	returns = []	
 	i = 0
 	while (i + holding_period < l):
@@ -234,8 +220,10 @@ def equity_curve(indicator, verification, bound_up, bound_low, holding_period):
 			returns.append(money)
 			i = 1 + i
 			
-	return returns
+	if end_value:
+		return money
 
+	return (returns + [money]*holding_period)[:l]
 
 
 
